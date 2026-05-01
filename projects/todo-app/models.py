@@ -1,4 +1,4 @@
 from schemas import Todo
 
 todos: dict[int, Todo] = {}
-next_id = int
+next_id: int = 1
