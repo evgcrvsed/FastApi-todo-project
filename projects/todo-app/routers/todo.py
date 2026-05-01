@@ -59,7 +59,7 @@ async def delete_todo(todo_id: int):
     del todos[todo_id]
 
 
-@router.patch("/{todo_id}", response_model=Todo)
+@router.patch("/{todo_id}", response_model=Todo) # Хуйня какая-то, put лучше
 async def patch_todo(todo_id: int, todo_update: TodoUpdate):
     if todo_id not in todos:
         raise HTTPException(
