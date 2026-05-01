@@ -67,15 +67,16 @@ async def patch_todo(todo_id: int, todo_update: TodoUpdate):
             detail="Задача не найдена"
         )
 
-    current_todo = todos[todo_id]
+    current = todos[todo_id]
 
     update_data = todo_update.model_dump(exclude_unset=True)
 
-    updated_todo = Todo(
-        id=current_todo.id,
-        created_at=current_todo.created_at,
-        **{**current_todo.model_dump(), **update_data}
-    )
+    updated_dict = {
+        **current.model_dump(),
+        **update_data
+    }
+
+    updated_todo = Todo(**updated_dict)
 
     todos[todo_id] = updated_todo
     return updated_todo
