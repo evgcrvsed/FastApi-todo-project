@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Query
 from schemas import TodoCreate, Todo
 from models import todos, next_id
 from datetime import datetime
@@ -7,8 +7,15 @@ router = APIRouter(prefix="/todos", tags=["todos"])
 
 
 @router.get("/", response_model=list[Todo])
-async def get_all_todos():
-    return list(todos.values())
+async def get_all_todos(
+    completed: bool | None = Query(None, description="Фильтр по статусу"),
+):
+    result = list(todos.values())
+
+    if completed is not None:
+        result = [todo for todo in result if todo.completed == completed]
+
+    return result
 
 
 @router.post("/", response_model=Todo, status_code=status.HTTP_201_CREATED)
@@ -39,7 +46,7 @@ async def update_todo(todo_id: int, todo_update: TodoCreate):
     updated_todo = Todo(
         id=todo_id,
         **todo_update.model_dump(),
-        created_at=todos[todo_id].created_at  # сохраняем оригинальное время создания
+        created_at=todos[todo_id].created_at
     )
     todos[todo_id] = updated_todo
     return updated_todo
@@ -50,3 +57,4 @@ async def delete_todo(todo_id: int):
     if todo_id not in todos:
         raise HTTPException(status_code=404, detail="Todo not found")
     del todos[todo_id]
+
