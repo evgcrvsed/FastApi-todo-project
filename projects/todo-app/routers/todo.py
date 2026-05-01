@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, status, Query
-from schemas import TodoCreate, Todo
+from schemas import TodoCreate, TodoUpdate, Todo
 from models import todos, next_id
 from datetime import datetime
 
@@ -58,3 +58,24 @@ async def delete_todo(todo_id: int):
         raise HTTPException(status_code=404, detail="Todo not found")
     del todos[todo_id]
 
+
+@router.patch("/{todo_id}", response_model=Todo)
+async def patch_todo(todo_id: int, todo_update: TodoUpdate):
+    if todo_id not in todos:
+        raise HTTPException(
+            status_code=404,
+            detail="Задача не найдена"
+        )
+
+    current_todo = todos[todo_id]
+
+    update_data = todo_update.model_dump(exclude_unset=True)
+
+    updated_todo = Todo(
+        id=current_todo.id,
+        created_at=current_todo.created_at,
+        **{**current_todo.model_dump(), **update_data}
+    )
+
+    todos[todo_id] = updated_todo
+    return updated_todo
