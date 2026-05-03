@@ -1,21 +1,32 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from routers.todo import router as todos_router
-from routers.health_check import router as health_router
 
 from db.engine import engine
 from models.base import Base
-
-app = FastAPI(title="Simple Todo API")
-
-app.include_router(todos_router)
-app.include_router(health_router)
+from routers.todo import router as todos_router
+from routers.health_check import router as health_router
 
 
-@app.on_event("startup")
-async def startup_event():
+# Lifespan — это контекстный менеджер
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     print("✅ База данных инициализирована")
+
+    yield
+
+    await engine.dispose()
+    print("✅ База данных отключена")
+
+
+app = FastAPI(
+    title="Simple Todo API",
+    lifespan=lifespan
+)
+
+app.include_router(todos_router)
+app.include_router(health_router)
 
 
 @app.get("/")
