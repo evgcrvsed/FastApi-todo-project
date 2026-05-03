@@ -23,3 +23,6 @@ class TodoUpdate(BaseModel):
 class Todo(TodoBase):
     id: int
     created_at: datetime
+
+class TodoRead(TodoBase):
+    id: int

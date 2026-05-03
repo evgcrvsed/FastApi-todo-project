@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, status, Query
-from schemas import TodoCreate, TodoUpdate, Todo
-from models import todos, next_id
+from todo import TodoCreate, TodoUpdate, Todo
+from models_old import todos, next_id
 from datetime import datetime
 
 router = APIRouter(prefix="/todos", tags=["todos"])
