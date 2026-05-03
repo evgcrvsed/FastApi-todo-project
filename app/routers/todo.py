@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from schemas.todo import TodoCreate, TodoUpdate, Todo, TodoRead
+from models.todo import Todo as TodoModel
 from repositories.todo import TodoRepository
 from .dependencies import get_todo_repo
 
@@ -16,13 +17,14 @@ async def get_all_todos(
     return await repo.get_all()
 
 
-@router.post("/", response_model=Todo, status_code=201)
+@router.post("/", response_model=TodoRead, status_code=201)
 async def create_todo(
     todo_in: TodoCreate,
     repo: TodoRepository = Depends(get_todo_repo),
 ):
-    todo = Todo(**todo_in.model_dump())
-    return await repo.add(todo)
+    todo = TodoModel(**todo_in.model_dump())
+    created_todo = await repo.add(todo)
+    return created_todo
 
 
 @router.get("/{todo_id}", response_model=Todo)
@@ -36,25 +38,36 @@ async def get_todo(
     return todo
 
 
-# @router.put("/{todo_id}", response_model=Todo)
-# async def update_todo(todo_id: int, todo_update: TodoCreate):
-#     if todo_id not in todos:
-#         raise HTTPException(status_code=404, detail="Todo not found")
+@router.delete("/{todo_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_todo(
+    todo_id: int,
+    repo: TodoRepository = Depends(get_todo_repo)
+):
+    todo = await repo.get_by_id(todo_id)
+    if todo is None:
+        raise HTTPException(status_code=404, detail="Todo not found")
+    return await repo.delete(todo)
+
+
+@router.put("/{todo_id}", response_model=Todo)
+async def update_todo(
+    todo_id: int,
+    todo_update: TodoCreate,
+    repo: TodoRepository = Depends(get_todo_repo)
+):
+    todo = await repo.get_by_id(todo_id)
+    if todo is None:
+        raise HTTPException(status_code=404, detail="Todo not found")
+
+    update_data = todo_update.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(todo, key, value)
+
+    return await repo.update(todo)
+
+
 #
-#     updated_todo = Todo(
-#         id=todo_id,
-#         **todo_update.model_dump(),
-#         created_at=todos[todo_id].created_at
-#     )
-#     todos[todo_id] = updated_todo
-#     return updated_todo
 #
-#
-# @router.delete("/{todo_id}", status_code=status.HTTP_204_NO_CONTENT)
-# async def delete_todo(todo_id: int):
-#     if todo_id not in todos:
-#         raise HTTPException(status_code=404, detail="Todo not found")
-#     del todos[todo_id]
 #
 #
 # @router.patch("/{todo_id}", response_model=Todo) # Хуйня какая-то, put лучше

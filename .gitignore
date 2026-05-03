@@ -1,7 +1,4 @@
 *.log
-data/
-data/logoUrl/
-/bot_backup
 /.venv
 /.idea
 __pycache__/
@@ -9,3 +6,4 @@ __pycache__/
 *$py.class
 *.pyc
 *.pyo
+*.db

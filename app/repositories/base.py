@@ -24,3 +24,8 @@ class BaseRepository(Generic[T]):
 
     async def delete(self, obj: T) -> None:
         await self.session.delete(obj)
+
+    async def update(self, obj: T) -> T:
+        await self.session.commit()
+        await self.session.refresh(obj)
+        return obj
