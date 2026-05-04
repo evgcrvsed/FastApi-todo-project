@@ -4,3 +4,7 @@ uvicorn
 pydantic_settings
 aiosqlite
 sqlalchemy
+python-jose[cryptography]
+passlib[bcrypt]
+python-multipart
+pydantic[email]

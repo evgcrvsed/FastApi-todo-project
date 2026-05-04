@@ -65,29 +65,3 @@ async def update_todo(
 
     return await repo.update(todo)
 
-
-#
-#
-#
-#
-# @router.patch("/{todo_id}", response_model=Todo) # Хуйня какая-то, put лучше
-# async def patch_todo(todo_id: int, todo_update: TodoUpdate):
-#     if todo_id not in todos:
-#         raise HTTPException(
-#             status_code=404,
-#             detail="Задача не найдена"
-#         )
-#
-#     current = todos[todo_id]
-#
-#     update_data = todo_update.model_dump(exclude_unset=True)
-#
-#     updated_dict = {
-#         **current.model_dump(),
-#         **update_data
-#     }
-#
-#     updated_todo = Todo(**updated_dict)
-#
-#     todos[todo_id] = updated_todo
-#     return updated_todo

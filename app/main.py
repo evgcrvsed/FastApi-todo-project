@@ -6,8 +6,9 @@ from models.base import Base
 from routers.todo import router as todos_router
 from routers.health_check import router as health_router
 
+from core.config import settings
 
-# Lifespan — это контекстный менеджер
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
@@ -21,7 +22,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Simple Todo API",
+    title=settings.PROJECT_NAME,
     lifespan=lifespan
 )
 
