@@ -1,28 +1,29 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from schemas.todo import TodoCreate, TodoUpdate, Todo, TodoRead
 from models.todo import Todo as TodoModel
+from .dependencies import get_todo_repo, CurrentUser
 from repositories.todo import TodoRepository
-from .dependencies import get_todo_repo
+from models.user import User
 
-router = APIRouter(prefix="/todos", tags=["todos"])  # потом сделаем /api/v1
+router = APIRouter(prefix="/todos", tags=["todos"])
 
 
 @router.get("/", response_model=list[Todo])
 async def get_all_todos(
     completed: bool | None = Query(None),
+    current_user: User = CurrentUser,
     repo: TodoRepository = Depends(get_todo_repo),
 ):
-    if completed is not None:
-        return await repo.get_by_completed(completed)
-    return await repo.get_all()
+    return await repo.get_all_by_owner(current_user.id)
 
 
 @router.post("/", response_model=TodoRead, status_code=201)
 async def create_todo(
     todo_in: TodoCreate,
+    current_user: User = CurrentUser,
     repo: TodoRepository = Depends(get_todo_repo),
 ):
-    todo = TodoModel(**todo_in.model_dump())
+    todo = TodoModel(**todo_in.model_dump(), owner_id=current_user.id)
     created_todo = await repo.add(todo)
     return created_todo
 
@@ -30,10 +31,11 @@ async def create_todo(
 @router.get("/{todo_id}", response_model=Todo)
 async def get_todo(
     todo_id: int,
-    repo: TodoRepository = Depends(get_todo_repo)
+    current_user: User = CurrentUser,
+    repo: TodoRepository = Depends(get_todo_repo),
 ):
     todo = await repo.get_by_id(todo_id)
-    if todo is None:
+    if todo is None or todo.owner_id != current_user.id:
         raise HTTPException(status_code=404, detail="Todo not found")
     return todo
 
@@ -41,10 +43,11 @@ async def get_todo(
 @router.delete("/{todo_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_todo(
     todo_id: int,
-    repo: TodoRepository = Depends(get_todo_repo)
+    current_user: User = CurrentUser,
+    repo: TodoRepository = Depends(get_todo_repo),
 ):
     todo = await repo.get_by_id(todo_id)
-    if todo is None:
+    if todo is None or todo.owner_id != current_user.id:
         raise HTTPException(status_code=404, detail="Todo not found")
     return await repo.delete(todo)
 
@@ -52,11 +55,12 @@ async def delete_todo(
 @router.put("/{todo_id}", response_model=Todo)
 async def update_todo(
     todo_id: int,
-    todo_update: TodoCreate,
-    repo: TodoRepository = Depends(get_todo_repo)
+    todo_update: TodoUpdate,          # было TodoCreate — исправил на Update
+    current_user: User = CurrentUser,
+    repo: TodoRepository = Depends(get_todo_repo),
 ):
     todo = await repo.get_by_id(todo_id)
-    if todo is None:
+    if todo is None or todo.owner_id != current_user.id:
         raise HTTPException(status_code=404, detail="Todo not found")
 
     update_data = todo_update.model_dump(exclude_unset=True)
@@ -64,4 +68,3 @@ async def update_todo(
         setattr(todo, key, value)
 
     return await repo.update(todo)
-

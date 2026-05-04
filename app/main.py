@@ -5,6 +5,7 @@ from db.engine import engine
 from models.base import Base
 from routers.todo import router as todos_router
 from routers.health_check import router as health_router
+from routers.auth import router as auth_router
 
 from core.config import settings
 
@@ -28,6 +29,7 @@ app = FastAPI(
 
 app.include_router(todos_router)
 app.include_router(health_router)
+app.include_router(auth_router)
 
 
 @app.get("/")

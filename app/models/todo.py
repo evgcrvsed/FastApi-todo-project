@@ -2,6 +2,8 @@ from sqlalchemy import String, Boolean, Text
 from .base import Base
 from sqlalchemy.orm import Mapped, mapped_column
 from datetime import datetime, timezone
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import relationship
 
 
 class Todo(Base):
@@ -17,3 +19,6 @@ class Todo(Base):
         default=lambda: datetime.now(timezone.utc),
         nullable=False
     )
+
+    owner_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
+    owner: Mapped["User"] = relationship("User", back_populates="todos")
