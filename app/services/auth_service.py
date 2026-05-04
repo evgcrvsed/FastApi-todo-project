@@ -8,22 +8,26 @@ from core.security import (
     create_refresh_token,
 )
 from repositories.user_repository import UserRepository
-from schemas.auth import UserCreate, UserLogin
+from schemas.auth import UserCreate, UserLogin, TokenResponse
+from models.user import User
 
 
 class AuthService:
-    def __init__(self, session: AsyncSession):   # ← session
+    def __init__(self, session: AsyncSession):
         self.repo = UserRepository(session)
 
-    async def register(self, user_in: UserCreate):
+    async def register(self, user_in: UserCreate) -> User:
         if await self.repo.get_by_email(user_in.email):
-            raise HTTPException(status_code=400, detail="Email already registered")
+            raise HTTPException(
+                status_code=400,
+                detail="Email already registered"
+            )
 
         hashed_password = get_password_hash(user_in.password)
         user = await self.repo.create(user_in.email, hashed_password)
         return user
 
-    async def login(self, credentials: UserLogin):
+    async def login(self, credentials: UserLogin) -> TokenResponse:
         user = await self.repo.get_by_email(credentials.email)
         if not user or not verify_password(credentials.password, user.hashed_password):
             raise HTTPException(
@@ -35,8 +39,8 @@ class AuthService:
         access_token = create_access_token(user.email)
         refresh_token = create_refresh_token(user.email)
 
-        return {
-            "access_token": access_token,
-            "refresh_token": refresh_token,
-            "token_type": "bearer"
-        }
+        return TokenResponse(
+            access_token=access_token,
+            refresh_token=refresh_token,
+            token_type="bearer"
+        )
