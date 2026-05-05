@@ -2,7 +2,7 @@ fastapi
 pydantic
 uvicorn
 pydantic_settings
-aiosqlite
+asyncpg
 sqlalchemy
 python-jose[cryptography]
 bcrypt

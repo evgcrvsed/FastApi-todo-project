@@ -55,7 +55,7 @@ async def delete_todo(
 @router.put("/{todo_id}", response_model=Todo)
 async def update_todo(
     todo_id: int,
-    todo_update: TodoUpdate,          # было TodoCreate — исправил на Update
+    todo_update: TodoUpdate,
     current_user: User = CurrentUser,
     repo: TodoRepository = Depends(get_todo_repo),
 ):

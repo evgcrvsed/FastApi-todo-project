@@ -1,11 +1,30 @@
 services:
+  db:
+    image: postgres:16
+    container_name: todo-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password123   # ← поменяй на свой
+      POSTGRES_DB: todo_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
   app:
-    build:
-      context: .
-      network: host
+    build: .
+    container_name: todo-fastapi
+    restart: always
     ports:
       - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:password123@db:5432/todo_db
+      # SECRET_KEY и DEBUG можешь оставить из .env
+    depends_on:
+      - db
     volumes:
-      - ./todo.db:/app/todo.db
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --workers 2
-    restart: unless-stopped
+      - ./app:/app   # для hot-reload в разработке
+
+volumes:
+  postgres_data:
